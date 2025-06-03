@@ -2,9 +2,10 @@
   "name": "projeto-sa-backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "set NODE_ENV=development&& node --no-warnings server.js",
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",
@@ -13,9 +14,13 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "bugs": {
     "url": "https://github.com/GRUPO-IV-SA-2025/projeto-sa-backend/issues"
   },
-  "homepage": "https://github.com/GRUPO-IV-SA-2025/projeto-sa-backend#readme"
+  "homepage": "https://github.com/GRUPO-IV-SA-2025/projeto-sa-backend#readme",
+  "dependencies": {
+    "express": "^5.1.0",
+    "mysql2": "^3.14.1"
+  }
 }

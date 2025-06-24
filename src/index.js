@@ -195,3 +195,70 @@ app.get('/private', authenticateToken, (req, res) => {
 app.listen(3000, () => {
     console.log('Servidor rodando na porta 3000');
 })
+
+
+app.post('/categorias', async (req, res) => {
+    const {descricao} = req.body;
+    try {
+        const [rows] = await pool.query(
+            'INSERT INTO categorias (descricao) VALUES (?)',
+            [descricao]
+        );
+        const [novo] = await pool.query('SELECT * FROM categorias WHERE id = ?', [rows.insertId]);
+        res.status(201).json(novo[0]);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({error: 'Erro ao adicionar uma categoria'});
+    }
+});
+
+app.get('/categorias', async (req, res) => {
+    try {
+        const [rows] = await pool.query('SELECT * FROM categorias');
+        res.json(rows)
+    }catch (err) {
+        console.error(err.message);
+        res.status(500).json({error : 'Erro ao buscar categorias'})
+    }
+});
+
+
+app.get('/produtos', async (req, res) => {
+    try {
+        const [rows] = await pool.query('SELECT * FROM produtos');
+        res.json(rows)
+    }catch (err) {
+        console.error(err.message);
+        res.status(500).json({error : 'Erro ao buscar produtos'})
+    }
+});
+
+app.post('/produtos', async (req, res) => {
+    const { descricao, codigo, categorias_id} = req.body;
+    
+    try {
+        const [rows] = await pool.query(
+            'INSERT INTO produtos (descricao, codigo, categorias_id) VALUES (?, ?, ?)',
+            [descricao, codigo, categorias_id]
+        );
+        const [novo] = await pool.query('SELECT * FROM produtos WHERE id = ?', [rows.insertId]);
+        res.status(201).json(novo[0]);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: 'Erro ao adicionar novo produto' });
+    }
+});
+
+app.delete('/produtos/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+      const [result] = await pool.query('DELETE FROM produtos WHERE id = ?', [id]);
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: 'Produto não encontrado' });
+      }
+      res.json({ message: 'Produto deletado com sucesso' });
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).json({ error: 'Erro ao deletar produto' });
+    }
+})

@@ -4,7 +4,8 @@
   "description": "",
   "main": "src/index.js",
   "scripts": {
-    "start": "nodemon src/index.js"
+    "test": "cross-env NODE_ENV=test jest --config jest.config.cjs --detectOpenHandles --forceExit",
+    "start": "node src/index.js"
   },
   "repository": {
     "type": "git",
@@ -21,11 +22,17 @@
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.14.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "@babel/preset-env": "^7.27.2",
+    "@types/jest": "^30.0.0",
+    "babel-jest": "^30.0.2",
+    "cross-env": "^7.0.3",
+    "jest": "^30.0.2",
+    "supertest": "^7.1.1"
   }
 }

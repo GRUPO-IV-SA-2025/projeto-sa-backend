@@ -1,20 +1,8 @@
 import express from 'express';
 import cors from 'cors';
-import mysql from 'mysql2/promise';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-
-
-// Conexão bd mysql
-const pool = mysql.createPool({
-    host: 'localhost',
-    user: 'root',
-    password: 'senai',
-    database: 'estoqueplus',
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-})
+import pool from './database.js';
 
 const app = express();
 app.use(cors({
@@ -40,7 +28,6 @@ function authenticateToken(req, res, next) {
         next();
     });
 }
-
 // Login Usuário
 app.post('/login', async (req, res) => {
     const { email, senha } = req.body;
@@ -74,18 +61,16 @@ app.post('/login', async (req, res) => {
         res.status(500).json({ message: 'Erro interno no servidor.' });
     }
 })
-
 // GET usuarios
 app.get('/usuarios', async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM usuarios');
-        console.log(rows);
-        res.json(rows);
+        // console.log(rows);
+        res.status(200).json(rows);
     } catch (err) {
         console.error(err.message);
     }
 })
-
 // GET somente um usuario pelo id
 app.get('/usuarios/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
@@ -192,6 +177,18 @@ app.get('/private', authenticateToken, (req, res) => {
     res.send(`Olá, ${req.user.nome}! Você acessou uma rota protegida.`);
 });
 
-app.listen(3000, () => {
-    console.log('Servidor rodando na porta 3000');
-})
+export const startServer = () => {
+    return new Promise((resolve) => {
+        const server = app.listen(3000, () => {
+            if (process.env.NODE_ENV !== 'test') {
+                console.log('Servidor rodando na porta 3000');
+            } resolve(server);
+        })
+    })
+}
+
+if (process.env.NODE_ENV !== 'test') {
+    startServer();
+}
+
+export default app;

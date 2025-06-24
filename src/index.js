@@ -9,7 +9,7 @@ import jwt from 'jsonwebtoken';
 const pool = mysql.createPool({
     host: 'localhost',
     user: 'root',
-    password: 'senai',
+    password: 'ian123',
     database: 'estoqueplus',
     waitForConnections: true,
     connectionLimit: 10,
@@ -198,7 +198,7 @@ app.listen(3000, () => {
 
 
 app.post('/categorias', async (req, res) => {
-    const {descricao} = req.body;
+    const { descricao } = req.body;
     try {
         const [rows] = await pool.query(
             'INSERT INTO categorias (descricao) VALUES (?)',
@@ -208,7 +208,7 @@ app.post('/categorias', async (req, res) => {
         res.status(201).json(novo[0]);
     } catch (err) {
         console.error(err.message);
-        res.status(500).json({error: 'Erro ao adicionar uma categoria'});
+        res.status(500).json({ error: 'Erro ao adicionar uma categoria' });
     }
 });
 
@@ -216,32 +216,54 @@ app.get('/categorias', async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM categorias');
         res.json(rows)
-    }catch (err) {
+    } catch (err) {
         console.error(err.message);
-        res.status(500).json({error : 'Erro ao buscar categorias'})
+        res.status(500).json({ error: 'Erro ao buscar categorias' })
     }
 });
 
+app.delete('/categorias/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const [result] = await pool.query('DELETE FROM categorias WHERE id = ?', [id]);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Produto não encontrado' });
+        }
+        res.json({ message: 'Categoria deletado com sucesso' });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: 'Erro ao deletar categoria' });
+    }
+})
 
 app.get('/produtos', async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM produtos');
+        const [rows] = await pool.query(
+            `SELECT p.id, p.descricao, p.codigo, c.descricao AS categoria FROM produtos p
+            JOIN categorias c ON p.categorias_id = c.id`
+        );
         res.json(rows)
-    }catch (err) {
+    } catch (err) {
         console.error(err.message);
-        res.status(500).json({error : 'Erro ao buscar produtos'})
+        res.status(500).json({ error: 'Erro ao buscar produtos' })
     }
 });
 
 app.post('/produtos', async (req, res) => {
-    const { descricao, codigo, categorias_id} = req.body;
-    
+
+    const { descricao, codigo, categorias_id } = req.body;
+
     try {
         const [rows] = await pool.query(
             'INSERT INTO produtos (descricao, codigo, categorias_id) VALUES (?, ?, ?)',
             [descricao, codigo, categorias_id]
         );
-        const [novo] = await pool.query('SELECT * FROM produtos WHERE id = ?', [rows.insertId]);
+        const [novo] = await pool.query(`
+    SELECT p.id, p.descricao, p.codigo, p.categorias_id, c.descricao AS categoria
+    FROM produtos p
+    JOIN categorias c ON p.categorias_id = c.id
+    WHERE p.id = ?
+`, [rows.insertId]);
         res.status(201).json(novo[0]);
     } catch (err) {
         console.error(err.message);
@@ -252,13 +274,37 @@ app.post('/produtos', async (req, res) => {
 app.delete('/produtos/:id', async (req, res) => {
     const { id } = req.params;
     try {
-      const [result] = await pool.query('DELETE FROM produtos WHERE id = ?', [id]);
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ error: 'Produto não encontrado' });
-      }
-      res.json({ message: 'Produto deletado com sucesso' });
+        const [result] = await pool.query('DELETE FROM produtos WHERE id = ?', [id]);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Produto não encontrado' });
+        }
+        res.json({ message: 'Produto deletado com sucesso' });
     } catch (err) {
-      console.error(err.message);
-      res.status(500).json({ error: 'Erro ao deletar produto' });
+        console.error(err.message);
+        res.status(500).json({ error: 'Erro ao deletar produto' });
+    }
+})
+
+app.patch('/produtos/:id', async (req, res) => {
+    const { id } = req.params;
+    const { descricao, codigo, categorias_id } = req.body;
+
+    try {
+        await pool.query(
+            'UPDATE produtos SET descricao = ?, codigo = ?, categorias_id = ? WHERE id = ?',
+            [descricao, codigo, categorias_id, id]);
+
+        const [atualzado] = await pool.query(`
+            SELECT p.id, p.descricao, p.codigo, p.categorias_id,c.descricao AS categoria
+            FROM produtos p
+            JOIN categorias c ON p.categorias_id = c.id
+            WHERE p.id = ?
+        `, [id]);
+
+        // const { senha, ...usuario } = atualzado[0];
+        res.json(atualzado[0]);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ message: 'Erro ao atualizar produto.' });
     }
 })

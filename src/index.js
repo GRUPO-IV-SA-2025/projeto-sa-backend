@@ -9,7 +9,7 @@ import jwt from 'jsonwebtoken';
 const pool = mysql.createPool({
     host: 'localhost',
     user: 'root',
-    password: 'senai',
+    password: 'ian123',
     database: 'estoqueplus',
     waitForConnections: true,
     connectionLimit: 10,
@@ -227,13 +227,33 @@ app.delete('/categorias/:id', async (req, res) => {
     try {
         const [result] = await pool.query('DELETE FROM categorias WHERE id = ?', [id]);
         if (result.affectedRows === 0) {
-            return res.status(404).json({ error: 'Produto não encontrado' });
+            return res.status(404).json({ error: 'Categoria não encontrada' });
         }
-        res.json({ message: 'Categoria deletado com sucesso' });
+        res.json({ message: 'Categoria deletada com sucesso' });
     } catch (err) {
         console.error(err.message);
         res.status(500).json({ error: 'Erro ao deletar categoria' });
     }
+})
+
+app.patch('/categorias/:id', async (req, res) => {
+    const { id } = req.params;
+    const { descricao } = req.body;
+
+    try {
+        await pool.query(
+            'UPDATE categorias SET descricao = ? WHERE id = ?',
+            [descricao, id]);
+
+        const [atualzado] = await pool.query(`
+            SELECT * FROM categorias WHERE id = ?
+        `, [id]);
+
+        res.json(atualzado[0]);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ message: 'Erro ao atualizar categoria.' });
+    }   
 })
 
 app.get('/produtos', async (req, res) => {

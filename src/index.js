@@ -239,7 +239,8 @@ app.delete('/categorias/:id', async (req, res) => {
 app.get('/produtos', async (req, res) => {
     try {
         const [rows] = await pool.query(
-            `SELECT p.id, p.descricao, p.codigo, c.descricao AS categoria FROM produtos p
+            `SELECT p.id, p.descricao, c.descricao AS categoria 
+            FROM produtos p
             JOIN categorias c ON p.categorias_id = c.id`
         );
         res.json(rows)
@@ -251,18 +252,18 @@ app.get('/produtos', async (req, res) => {
 
 app.post('/produtos', async (req, res) => {
 
-    const { descricao, codigo, categorias_id } = req.body;
+    const { descricao, categorias_id } = req.body;
 
     try {
         const [rows] = await pool.query(
-            'INSERT INTO produtos (descricao, codigo, categorias_id) VALUES (?, ?, ?)',
-            [descricao, codigo, categorias_id]
+            'INSERT INTO produtos (descricao, categorias_id) VALUES (?, ?)',
+            [descricao, categorias_id]
         );
         const [novo] = await pool.query(`
-    SELECT p.id, p.descricao, p.codigo, p.categorias_id, c.descricao AS categoria
-    FROM produtos p
-    JOIN categorias c ON p.categorias_id = c.id
-    WHERE p.id = ?
+        SELECT p.id, p.descricao, p.categorias_id, c.descricao AS categoria
+        FROM produtos p
+        JOIN categorias c ON p.categorias_id = c.id
+        WHERE p.id = ?
 `, [rows.insertId]);
         res.status(201).json(novo[0]);
     } catch (err) {
@@ -287,15 +288,15 @@ app.delete('/produtos/:id', async (req, res) => {
 
 app.patch('/produtos/:id', async (req, res) => {
     const { id } = req.params;
-    const { descricao, codigo, categorias_id } = req.body;
+    const { descricao, categorias_id } = req.body;
 
     try {
         await pool.query(
-            'UPDATE produtos SET descricao = ?, codigo = ?, categorias_id = ? WHERE id = ?',
-            [descricao, codigo, categorias_id, id]);
+            'UPDATE produtos SET descricao = ?, categorias_id = ? WHERE id = ?',
+            [descricao, categorias_id, id]);
 
         const [atualzado] = await pool.query(`
-            SELECT p.id, p.descricao, p.codigo, p.categorias_id,c.descricao AS categoria
+            SELECT p.id, p.descricao, p.categorias_id, c.descricao AS categoria
             FROM produtos p
             JOIN categorias c ON p.categorias_id = c.id
             WHERE p.id = ?

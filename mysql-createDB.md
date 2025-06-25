@@ -9,7 +9,7 @@ CREATE TABLE usuarios (
     nome VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     senha VARCHAR(255) NOT NULL
-)
+);
 
 CREATE TABLE categorias (
 	id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
@@ -19,7 +19,6 @@ CREATE TABLE categorias (
 CREATE TABLE produtos (
 	id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     descricao VARCHAR(100) NOT NULL,
-    codigo INT,
     
 	categorias_id INT,
     FOREIGN KEY (categorias_id)

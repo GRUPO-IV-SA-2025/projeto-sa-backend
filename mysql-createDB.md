@@ -7,6 +7,9 @@ USE estoqueplus;
 CREATE TABLE usuarios (
     id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
+    sobrenome VARCHAR(100) NOT NULL,
+    empresa VARCHAR(100) NOT NULL,
+    contato VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     senha VARCHAR(255) NOT NULL
 );
@@ -24,6 +27,5 @@ CREATE TABLE produtos (
     FOREIGN KEY (categorias_id)
     REFERENCES categorias (id)
 );
-
 
 ```

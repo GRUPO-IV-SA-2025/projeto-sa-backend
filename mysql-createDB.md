@@ -35,9 +35,11 @@ CREATE TABLE estoque (
     preco_compra DECIMAL(10,2),
     data_lancamento DATE NOT NULL DEFAULT (CURRENT_DATE),
     
-	produtos_id INT NOT NULL,
+	produtos_id INT,
+    produto_nome VARCHAR(100),
     FOREIGN KEY (produtos_id) 
     REFERENCES produtos (id) 
+    ON DELETE SET NULL
 );
 
 ```

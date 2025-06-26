@@ -329,3 +329,66 @@ app.patch('/produtos/:id', async (req, res) => {
         res.status(500).json({ message: 'Erro ao atualizar produto.' });
     }
 })
+
+app.post('/estoque', async (req, res) => {
+    const { tipo, quantidade, preco_compra, produtos_id } = req.body;
+
+    if (!tipo || !quantidade || !produtos_id) {
+        return res.status(400).json({ error: 'Campos obrigatórios: tipo, quantidade, produtos_id' });
+    }
+
+    try {
+        const [result] = await pool.query(
+            `INSERT INTO estoque (tipo, quantidade, preco_compra, produtos_id)
+             VALUES (?, ?, ?, ?)`,
+            [tipo, quantidade, preco_compra || null, produtos_id]
+        );
+
+        const [lancamento] = await pool.query(`
+            SELECT l.*, p.descricao AS produto
+            FROM estoque l
+            JOIN produtos p ON l.produtos_id = p.id
+            WHERE l.id = ?
+        `, [result.insertId]);
+
+        res.status(201).json(lancamento[0]);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: 'Erro ao adicionar lançamento de estoque' });
+    }
+});
+
+app.get('/estoque', async (req, res) => {
+    const { produtoId } = req.query;
+
+    try {
+        let query = `
+            SELECT 
+                l.id,
+                l.tipo,
+                l.quantidade,
+                l.preco_compra,
+                l.data_lancamento,
+                p.descricao AS produto_descricao
+            FROM estoque l
+            JOIN produtos p ON l.produtos_id = p.id
+        `;
+
+        const params = [];
+
+        if (produtoId) {
+            query += " WHERE p.id = ?";
+            params.push(produtoId);
+        }
+
+        query += " ORDER BY l.data_lancamento DESC";
+
+        const [rows] = await pool.query(query, params);
+        res.json(rows);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: 'Erro ao buscar lançamentos de estoque' });
+    }
+});
+
+

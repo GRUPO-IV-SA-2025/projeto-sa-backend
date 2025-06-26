@@ -28,4 +28,16 @@ CREATE TABLE produtos (
     REFERENCES categorias (id)
 );
 
+CREATE TABLE estoque (
+	id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+	tipo ENUM('entrada', 'saida') NOT NULL,
+    quantidade INT NOT NULL,
+    preco_compra DECIMAL(10,2),
+    data_lancamento DATE NOT NULL DEFAULT (CURRENT_DATE),
+    
+	produtos_id INT NOT NULL,
+    FOREIGN KEY (produtos_id) 
+    REFERENCES produtos (id) 
+);
+
 ```

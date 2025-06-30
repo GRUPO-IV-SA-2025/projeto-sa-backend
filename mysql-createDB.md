@@ -11,7 +11,14 @@ CREATE TABLE usuarios (
     empresa VARCHAR(100) NOT NULL,
     contato VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
-    senha VARCHAR(255) NOT NULL
+    senha VARCHAR(255) NOT NULL,
+    cep VARCHAR(9),
+    logradouro VARCHAR(255),
+    numero INT,
+    complemento VARCHAR(100),
+    bairro VARCHAR(100),
+    cidade VARCHAR(100),
+    uf VARCHAR(2)
 );
 
 CREATE TABLE categorias (

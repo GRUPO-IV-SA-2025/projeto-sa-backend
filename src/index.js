@@ -122,25 +122,33 @@ app.get('/usuarios/:id', authenticateToken, async (req, res) => {
 
 app.patch('/usuarios/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
-    const { nome, sobrenome, empresa, contato, email } = req.body;
+    const {
+        nome, sobrenome, empresa, contato, email,
+        cep, logradouro, numero, bairro, cidade, uf
+    } = req.body;
 
     try {
         if (Number(id) !== Number(req.user.id)) {
-            return res.status(403).json({ message: 'Acesso não autorizado.' })
+            return res.status(403).json({ message: 'Acesso não autorizado.' });
         }
 
         await pool.query(
-            'UPDATE usuarios SET nome = ?, sobrenome = ?, empresa = ?, contato = ?, email = ? WHERE id = ?',
-            [nome, sobrenome, empresa, contato, email, id]);
+            `UPDATE usuarios SET nome = ?, sobrenome = ?, empresa = ?, contato = ?, email = ?,
+             cep = ?, logradouro = ?, numero = ?, bairro = ?, cidade = ?, uf = ?
+             WHERE id = ?`,
+            [nome, sobrenome, empresa, contato, email, cep, logradouro, numero, bairro, cidade, uf, id]
+        );
 
-        const [atualzado] = await pool.query('SELECT * FROM usuarios  WHERE id = ?', [id]);
-        const { senha, ...usuario } = atualzado[0];
+        const [atualizado] = await pool.query('SELECT * FROM usuarios WHERE id = ?', [id]);
+        const { senha, ...usuario } = atualizado[0];
         res.json(usuario);
+
     } catch (err) {
         console.error(err.message);
         res.status(500).json({ message: 'Erro ao atualizar perfil.' });
     }
-})
+});
+
 
 app.delete('/usuarios/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;

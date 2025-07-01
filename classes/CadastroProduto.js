@@ -1,9 +1,8 @@
-class CadastrarProduto {
-    constructor() {
-        this.produtos = []
-    }
+const db = require('../src/db');
 
-    validarProduto(produto) {
+class CadastrarProduto {
+
+    async validarProduto(produto) {
         if (!produto.descricao || typeof produto.descricao !== 'string') {
             throw new Error('Descrição é obrigatório.')
         }
@@ -13,13 +12,18 @@ class CadastrarProduto {
         return true;
     }
 
-    adicionarProduto(produto){
-        this.validarProduto(produto)
-        this.produtos.push(produto)
+    async adicionarProduto(produto) {
+        await this.validarProduto(produto)
+        await db.query('INSERT INTO produtos (descricao, categorias_id) VALUES (?, ?)',
+            [produto.descricao, produto.categorias_id]);
     }
 
-    listarProduto(){
-        return this.produtos
+    async listarProduto(descricao) {
+        const [rows] = await db.query(
+            'SELECT * FROM produtos WHERE descricao = ?', 
+            [descricao]
+        );
+        return rows;
     }
 }
 

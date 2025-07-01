@@ -1,22 +1,28 @@
-class CadastrarCategoria {
-    constructor() {
-        this.categorias = []
-    }
+const db = require('../src/db');
 
-    validarCategoria(categoria){
-        if(!categoria.descricao || typeof categoria.descricao !== 'string'){
+class CadastrarCategoria {
+    // constructor() {
+    //     this.categorias = []
+    // }
+
+
+    async validarCategoria(categoria) {
+        if (!categoria.descricao || typeof categoria.descricao !== 'string') {
             throw new Error('Descrição é obrigatório.')
         }
         return true;
     }
 
-    adicionarCategoria(categoria){
-        this.validarCategoria(categoria)
-        this.categorias.push(categoria)
+    async adicionarCategoria(categoria) {
+        await this.validarCategoria(categoria)
+        // await this.categorias.push(categoria)
+        await db.query('INSERT INTO categorias (descricao) VALUES (?)', [categoria.descricao]);
     }
 
-    listarCategoria(){
-        return this.categorias
+    async listarCategoria(descricao) {
+        const [rows] = await db.query('SELECT * FROM categorias WHERE descricao = ?', [descricao]);
+        // return this.categorias
+        return rows;
     }
 }
 

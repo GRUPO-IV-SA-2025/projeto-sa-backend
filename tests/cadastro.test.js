@@ -9,7 +9,7 @@ const { criarUsuario } = require('../models/usuario');
 //     // Limpe ou resete o banco de testes
 //     await db.query('DELETE FROM usuarios');
 //   });
-  
+
 //   afterAll(async () => {
 //     await db.end();
 //   });
@@ -20,16 +20,16 @@ describe('Testes EstoquePlus', () => {
 
 
     beforeAll(async () => {
-        await db.query('DELETE FROM usuarios WHERE email = ?', ['teste@teste.com']);
-      });
-    
+        await db.query('DELETE FROM usuarios WHERE email = ?', ['joao@example.com']);
+    });
+
     //   afterAll(async () => {
     //     // Finaliza o pool de conexões DEPOIS de todos os testes
     //     await db.end();
     //   });
 
 
-    test('Cadastrar usuário', async  () => {
+    test('Cadastrar usuário', async () => {
 
         //GIVEN - DADOS
         const usuario = new Usuario(
@@ -49,30 +49,55 @@ describe('Testes EstoquePlus', () => {
         const lista = await cadastro.listarCadastro()
         expect(lista.length).toBe(1);
     });
-    // test('Cadastrar usuário sem nome', async () => {
 
-    //     //GIVEN - DADOS
-    //     const cadastro = new CadastroUsuario();
-    //     const usuario = new Usuario(
-    //         '',
-    //         'Silva',
-    //         'MinhaEmpresa',
-    //         '123456789',
-    //         'joao@example.com',
-    //         '123456'
-    //     )
+    test('Cadastro de usuário com email inválido', async () => {
+        const cadastro = new CadastroUsuario();
+        const usuario = new Usuario(
+            'Maria',
+            'Souza',
+            'Tech LTDA',
+            '987654321',
+            'mariaexample.com',
+            'senha123'
+        );
 
-    //     //WHEN - ACAO
-    //     expect (() => 
-    //     cadastro.adicionarCadastro(usuario)).toThrow(
-    //         'Nome é obrigatório e deve ser uma string.'
-    //     )
+        // Espera que o cadastro lance um erro
+        await expect(cadastro.adicionarCadastro(usuario))
+            .rejects
+            .toThrow('Email inválido.');
 
-    //     //THEN - RESULTADO
+        // Confirma que não foi salvo no banco
+        const [result] = await db.query('SELECT * FROM usuarios WHERE email = ?', ['mariaexample.com']);
+        expect(result.length).toBe(0);
+    });
+    test('Cadastrar usuário sem nome', async () => {
 
-    //     const lista = cadastro.listarCadastro()
-    //     expect(lista.length).toBe(0);
-    // });
+        //GIVEN - DADOS
+        const cadastro = new CadastroUsuario();
+        const usuario = new Usuario(
+            '',
+            'Silva',
+            'MinhaEmpresa',
+            '123456789',
+            'joao@example.com',
+            '123456'
+        )
+
+        //WHEN - ACAO
+        await expect(() =>
+            cadastro.adicionarCadastro(usuario))
+            .rejects
+            .toThrow(
+                'Nome é obrigatório e deve ser uma string.'
+            )
+
+        //THEN - RESULTADO
+
+        // const lista = cadastro.listarCadastro()
+        // expect(lista.length).toBe(0);
+        const [result] = await db.query('SELECT * FROM usuarios WHERE email = ?', ['maria@exemplo.com']);
+        expect(result.length).toBe(0);
+    });
     // test('Cadastrar usuário sem sobrenome', async () => {
 
     //     //GIVEN - DADOS

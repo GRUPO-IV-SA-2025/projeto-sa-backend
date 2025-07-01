@@ -124,7 +124,7 @@ app.patch('/usuarios/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
     const {
         nome, sobrenome, empresa, contato, email,
-        cep, logradouro, numero, bairro, cidade, uf
+        cep, logradouro, numero, complemento, bairro, cidade, uf
     } = req.body;
 
     try {
@@ -134,9 +134,9 @@ app.patch('/usuarios/:id', authenticateToken, async (req, res) => {
 
         await pool.query(
             `UPDATE usuarios SET nome = ?, sobrenome = ?, empresa = ?, contato = ?, email = ?,
-             cep = ?, logradouro = ?, numero = ?, bairro = ?, cidade = ?, uf = ?
+             cep = ?, logradouro = ?, numero = ?, complemento = ?, bairro = ?, cidade = ?, uf = ?
              WHERE id = ?`,
-            [nome, sobrenome, empresa, contato, email, cep, logradouro, numero, bairro, cidade, uf, id]
+            [nome, sobrenome, empresa, contato, email, cep, logradouro, numero, complemento, bairro, cidade, uf, id]
         );
 
         const [atualizado] = await pool.query('SELECT * FROM usuarios WHERE id = ?', [id]);

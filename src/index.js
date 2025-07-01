@@ -10,7 +10,7 @@ import jwt from 'jsonwebtoken';
 const pool = mysql.createPool({
     host: 'localhost',
     user: 'root',
-    password: 'Lucca123789456',
+    password: 'senai',
     database: 'estoqueplus',
     waitForConnections: true,
     connectionLimit: 10,

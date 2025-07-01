@@ -1,7 +1,11 @@
+// const db = require('../src/db');
+const db = require('../src/db')
+const bcrypt = require('bcrypt');
+
 class CadastroUsuario {
-    constructor() {
-        this.usuarios = [];
-    }
+    // constructor() {
+    //     this.usuarios = [];
+    // }
 
     validarDados(usuario) {
         if (!usuario.nome || typeof usuario.nome !== 'string') {
@@ -27,14 +31,55 @@ class CadastroUsuario {
         return true;
     }
 
-    adicionarCadastro(usuario){
-        this.validarDados(usuario)
-        this.usuarios.push(usuario)
+    async adicionarCadastro(usuario) {
+         this.validarDados(usuario);
+
+        // Verifica se o e-mail já existe
+        const [usuariosExistentes] = await db.query(
+            'SELECT id FROM usuarios WHERE email = ?',
+            [usuario.email]
+        );
+
+        if (usuariosExistentes.length > 0) {
+            throw new Error('Email já cadastrado.');
+        }
+
+        const senhaHash = await bcrypt.hash(usuario.senha, 10);
+
+        const [result] = await db.query(
+            `INSERT INTO usuarios (nome, sobrenome, empresa, contato, email, senha)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [
+                usuario.nome,
+                usuario.sobrenome,
+                usuario.empresa,
+                usuario.contato,
+                usuario.email,
+                senhaHash
+            ]
+        );
+
+        return {
+            id: result.insertId,
+            nome: usuario.nome,
+            email: usuario.email
+        };
     }
 
-    listarCadastro() {
-        return this.usuarios
+    async listarCadastro() {
+        const [usuarios] = await db.query('SELECT id, nome, email FROM usuarios');
+        return usuarios;
     }
+
+
+    // adicionarCadastro(usuario){
+    //     this.validarDados(usuario)
+    //     this.usuarios.push(usuario)
+    // }
+
+    // listarCadastro() {
+    //     return this.usuarios
+    // }
 }
 
 module.exports = CadastroUsuario;

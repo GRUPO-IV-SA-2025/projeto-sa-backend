@@ -1,119 +1,98 @@
-// const CadastrarEstoque = require("../classes/CadastroEstoque");
-// const Estoque = require("../classes/Estoque");
 
 
-// describe('Teste de cadastro Estoque', () => {
-//     test('Cadastr estoque', () => {
-//         //GIVEN - DADOS
-//         const cadastrarEstoque = new CadastrarEstoque();
-//         const estoque = new Estoque(
-//             'Entrada',
-//             2,
-//             120,
-//             1
-//         )
+const CadastrarEstoque = require('../classes/CadastroEstoque');
+const Estoque = require('../classes/Estoque');
+const CadastrarProduto = require('../classes/CadastroProduto');
+const Produto = require('../classes/Produto');
+const db = require('../src/db');
 
-//         //WHEN - ACAO
-//         cadastrarEstoque.adicionarEstoque(estoque)
+describe('Teste de cadastro de Estoque', () => {
+    let produtoId = 1
 
-//         //THEN - RESULTADO
-//         const lista = cadastrarEstoque.listarEstoque()
-//         expect(lista.length).toBe(1)
-//         console.log(lista);
-//     })
-//     test('Cadastr estoque - entrada vazia', () => {
-//         //GIVEN - DADOS
-//         const cadastrarEstoque = new CadastrarEstoque();
-//         const estoque = new Estoque(
-//             '',
-//             2,
-//             120,
-//             1
-//         )
+    beforeAll(async () => {
+        const [catRows] = await db.query('SELECT id FROM categorias WHERE descricao = ?', ['Eletrodoméstico']);
+        let categoriaId;
 
-//         //WHEN - ACAO
-//         expect(() => {
+        if (catRows.length === 0) {
+            const result = await db.query('INSERT INTO categorias (descricao) VALUES (?)', ['Eletrodoméstico']);
+            categoriaId = result[0].insertId;
+        } else {
+            categoriaId = catRows[0].id;
+        }
 
-//             cadastrarEstoque.adicionarEstoque(estoque).toThrow(
-//                 'Tipo é obrigatório.'
-//             )
-//         })
+        const cadastrarProduto = new CadastrarProduto();
+        const produto = new Produto('Geladeira Consul', categoriaId.toString());
+        await cadastrarProduto.adicionarProduto(produto);
 
-//         //THEN - RESULTADO
-//         const lista = cadastrarEstoque.listarEstoque()
-//         expect(lista.length).toBe(0)
-//     })
-//     test('Cadastr estoque - quantidade vazia', () => {
-//         //GIVEN - DADOS
-//         const cadastrarEstoque = new CadastrarEstoque();
-//         const estoque = new Estoque(
-//             'Entrada',
-//             2,
-//             120,
-//             1
-//         )
+        const [prodRows] = await db.query('SELECT id FROM produtos WHERE descricao = ?', ['Geladeira Consul']);
+        produtoId = prodRows[0].id;
+    });
 
-//         //WHEN - ACAO
-//         expect(() => {
+    beforeEach(async () => {
+        await db.query('DELETE FROM estoque WHERE produtos_id = ?', [produtoId]);
+    });
 
-//             cadastrarEstoque.adicionarEstoque(estoque).toThrow(
-//                 'Quantidade é obrigatório.'
-//             )
-//         })
+    test('Cadastro de estoque válido', async () => {
+        const cadastrarEstoque = new CadastrarEstoque();
+        const estoque = new Estoque('entrada', 10, 1500.00, produtoId);
 
-//         //THEN - RESULTADO
-//         const lista = cadastrarEstoque.listarEstoque()
-//         expect(lista.length).toBe(0)
-//     })
+        await cadastrarEstoque.adicionarEstoque(estoque);
 
-//     test('Cadastr estoque - entrada vazia', () => {
-//         //GIVEN - DADOS
-//         const cadastrarEstoque = new CadastrarEstoque();
-//         const estoque = new Estoque(
-//             'Entrada',
-//             2,
-//             '',
-//             1
-//         )
+        const lista = await cadastrarEstoque.listarEstoquePorProduto(produtoId);
+        expect(lista.length).toBeGreaterThan(0);
+        expect(lista[0].tipo).toBe('entrada');
+        expect(lista[0].quantidade).toBe(10);
+    });
 
-//         //WHEN - ACAO
-//         expect(() => {
+    test('Cadastro com tipo vazio deve falhar', async () => {
+        const cadastrarEstoque = new CadastrarEstoque();
+        const estoque = {
+            tipo: '',
+            quantidade: 10,
+            preco_compra: 100,
+            produtos_id: 1
+        };
 
-//             cadastrarEstoque.adicionarEstoque(estoque).toThrow(
-//                 'Preço é obrigatório.'
-//             )
-//         })
+        expect(() => {
+            cadastrarEstoque.adicionarEstoque(estoque);
+        }).toThrow('Tipo é obrigatório.');
+        const lista = await cadastrarEstoque.listarEstoquePorProduto(produtoId);
+        expect(lista.length).toBe(0);
+    });
 
-//         //THEN - RESULTADO
-//         const lista = cadastrarEstoque.listarEstoque()
-//         expect(lista.length).toBe(0)
-//     })
-//     test('Cadastr estoque - produto vazio', () => {
-//         //GIVEN - DADOS
-//         const cadastrarEstoque = new CadastrarEstoque();
-//         const estoque = new Estoque(
-//             'Entrada',
-//             2,
-//             120,
-//             ''
-//         )
 
-//         //WHEN - ACAO
-//         expect(() => {
 
-//             cadastrarEstoque.adicionarEstoque(estoque).toThrow(
-//                 'Produto é obrigatório.'
-//             )
-//         })
+    test('Cadastro com quantidade inválida deve falhar', () => {
+        const estoqueService = new CadastrarEstoque();
 
-//         //THEN - RESULTADO
-//         const lista = cadastrarEstoque.listarEstoque()
-//         expect(lista.length).toBe(0)
-//     })
-// })
+        const estoqueInvalido = {
+            tipo: 'entrada',
+            quantidade: 'dez',
+            preco_compra: 10.5,
+            produtos_id: 1
+        };
 
-// describe('Teste temporário', () => {
-//   it('Deve passar', () => {
-//     expect(true).toBe(true);
-//   });
-// });
+        expect(() => {
+            estoqueService.adicionarEstoque(estoqueInvalido);
+        }).toThrow('Quantidade é obrigatório.');
+    })
+
+    test('Cadastro com preço vazio deve falhar', async () => {
+        const cadastrarEstoque = new CadastrarEstoque();
+        const estoque = new Estoque('entrada', 5, 'dez', 1);
+
+        expect(() => cadastrarEstoque.adicionarEstoque(estoque)
+        ).toThrow('Preço é obrigatório.');
+    });
+
+    test('Cadastro com produto inválido deve falhar', async () => {
+        const cadastrarEstoque = new CadastrarEstoque();
+        const estoque = new Estoque('entrada', 5, 1000, '');
+
+         expect(() => cadastrarEstoque.adicionarEstoque(estoque)).toThrow('Produto é obrigatório.');
+
+        const lista = await cadastrarEstoque.listarEstoque();
+        expect(lista.find(e => e.produtos_id === '')).toBeUndefined();
+    });
+
+});

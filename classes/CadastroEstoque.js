@@ -4,7 +4,7 @@ class CadastrarEstoque {
     }
 
     validarEstoque(estoque) {
-        if (!estoque.tipo || estoque.tipo == 'entrada' || estoque.tipo == 'saida') {
+        if (!estoque.tipo || !['entrada', 'saida'].includes(estoque.tipo)) {
             throw new Error('Tipo é obrigatório.')
         }
         if (!estoque.quantidade || typeof estoque.quantidade !== 'number') {
@@ -25,6 +25,10 @@ class CadastrarEstoque {
 
     listarEstoque() {
         return this.estoques
+    }
+
+    listarEstoquePorProduto(produtoId) {
+        return this.estoques.filter(e => e.produtos_id === produtoId);
     }
 }
 
